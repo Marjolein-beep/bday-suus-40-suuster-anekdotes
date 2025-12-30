@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QR Quiz</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      text-align: center;
+      margin: 50px 16px;
+      background: powderblue;
+    }
+    #wrap {
+      display: inline-block;
+      background: #fff;
+      padding: 20px;
+      border-radius: 14px;
+    }
+    #qr {
+      width: 280px;
+      height: 280px;
+      object-fit: contain;
+      background: #fff;
+    }
+    .btns {
+      margin-top: 16px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    button {
+      font-size: 18px;
+      padding: 10px 16px;
+      cursor: pointer;
+    }
+    #answerBox {
+      margin-top: 16px;
+      font-size: 22px;
+      background: #000;
+      color: #fff;
+      padding: 14px 18px;
+      border-radius: 10px;
+      min-height: 1.2em;
+    }
+    #meta {
+      margin-top: 12px;
+      opacity: 0.8;
+      font-size: 14px;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="wrap">
+    <img id="qr" alt="QR code" src="" />
+    <div id="answerBox">Klik “Toon antwoord”</div>
+
+    <div class="btns">
+      <button id="reveal">Toon antwoord</button>
+      <button id="next">Volgende</button>
+    </div>
+
+    <div id="meta"></div>
+  </div>
+
+  <script>
+    /**
+     * ✅ LAATSTE WERKENDE VERSIE (GitHub Pages)
+     * Repo naam: bday-suus-40-suuster-anekdotes
+     *
+     * Upload-structuur in repo-root:
+     * - index.html  (dit bestand)
+     * - qrs/        (map)
+     *    - code1.png
+     *    - code2.png
+     *    - code3.png
+     *
+     * GitHub Pages: Settings → Pages → Deploy from branch → main → /(root)
+     */
+
+    // ⬇️ Pas alleen je GitHub gebruikersnaam aan als die ooit verandert
+    const USERNAME = "marjolein-beep";
+    const REPO = "bday-suus-40-suuster-anekdotes";
+    const BASE = `https://${USERNAME}.github.io/${REPO}`;
+
+    // 1) QR-items: QR-bestand + correct antwoord
+    const items = [
+      { qr: `${BASE}/qrs/code1.png`, answer: "2003" },
+      { qr: `${BASE}/qrs/code2.png`, answer: "2007 & 2014" },
+      { qr: `${BASE}/qrs/code3.png`, answer: "2021" },
+      // Voeg hier meer items toe...
+      // { qr: `${BASE}/qrs/code4.png`, answer: "..." },
+    ];
+
+    // 2) Shuffle per ronde zodat je niet herhaalt tot alles geweest is
+    let ronde = [];
+    let index = 0;
+    let current = null;
+    let revealed = false;
+
+    function shuffle(a) {
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function nieuweRonde() {
+      ronde = shuffle([...items]);
+      index = 0;
+    }
+
+    function render() {
+      const img = document.getElementById("qr");
+      const meta = document.getElementById("meta");
+      const box  = document.getElementById("answerBox");
+
+      if (!current) {
+        meta.textContent = "❌ current is null (er is nog geen item geselecteerd).";
+        return;
+      }
+
+      // Debug: toont exact wat er geladen wordt (handig tot alles stabiel is)
+      meta.textContent = "Probeer te laden: " + current.qr;
+
+      img.onload = () => {
+        meta.textContent = "✅ Geladen: " + img.src;
+      };
+
+      img.onerror = () => {
+        meta.textContent = "❌ Kon niet laden: " + img.src;
+      };
+
+      img.src = current.qr;
+
+      box.textContent = revealed ? current.answer : "Klik “Toon antwoord”";
+    }
+
+    function volgende() {
+      if (!items.length) {
+        document.getElementById("meta").textContent = "❌ items is leeg. Voeg QR-items toe.";
+        return;
+      }
+      if (ronde.length === 0 || index >= ronde.length) {
+        nieuweRonde();
+      }
+
+      current = ronde[index];
+      index++;
+
+      revealed = false;
+      render();
+    }
+
+    document.getElementById("reveal").addEventListener("click", () => {
+      revealed = true;
+      render();
+    });
+
+    document.getElementById("next").addEventListener("click", volgende);
+
+    // Start
+    nieuweRonde();
+    volgende();
+  </script>
+</body>
+</html>
